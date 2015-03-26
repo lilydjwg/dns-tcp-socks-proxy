@@ -209,14 +209,6 @@ int udp_listener() {
   if(bind(sock, (struct sockaddr*)&dns_listener, sizeof(dns_listener)) < 0)
     error("[!] Error binding on dns proxy");
 
-  FILE *resolv = fopen("/etc/resolv.conf", "w");
-
-  if (!resolv)
-    error("[!] Error opening /etc/resolv.conf");
-
-  fprintf(resolv, "nameserver %s\n", LISTEN_ADDR);
-  fclose(resolv);
-
   if (strcmp(LOGFILE, "/dev/null") != 0) {
     LOG      = 1;
     LOG_FILE = fopen(LOGFILE, "a+");
@@ -224,14 +216,10 @@ int udp_listener() {
       error("[!] Error opening logfile.");
   }
 
-  printf("[*] No errors, backgrounding process.\n");
-
-  // daemonize the process.
-  if(fork() != 0) { exit(0); }
-  if(fork() != 0) { exit(0); }
-
-  setuid(getpwnam(USERNAME)->pw_uid);
-  setgid(getgrnam(GROUPNAME)->gr_gid);
+  if(geteuid() == 0) {
+    setuid(getpwnam(USERNAME)->pw_uid);
+    setgid(getgrnam(GROUPNAME)->gr_gid);
+  }
   socklen_t dns_client_size = sizeof(struct sockaddr_in);
 
   // setup SIGCHLD handler to kill off zombie children
@@ -311,11 +299,6 @@ int main(int argc, char *argv[]) {
     else {
       parse_config(argv[1]);
     }
-  }
-
-  if (getuid() != 0) {
-    printf("Error: this program must be run as root! Quitting\n");
-    exit(1);
   }
 
   printf("[*] Listening on: %s:%d\n", LISTEN_ADDR, LISTEN_PORT);

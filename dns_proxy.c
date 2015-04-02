@@ -241,6 +241,8 @@ int udp_listener() {
       continue;
     }
 
+    // flush before fork so messages won't be written twice
+    fflush(NULL);
     // fork so we can keep receiving requests
     if (fork() != 0) { continue; }
 

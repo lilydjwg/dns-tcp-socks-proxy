@@ -245,6 +245,8 @@ int udp_listener() {
     fflush(NULL);
     // fork so we can keep receiving requests
     if (fork() != 0) { continue; }
+    // exit after 1 minute
+    alarm(60);
 
     // the tcp query requires the length to precede the packet, so we put the length there
     query = malloc(len + 3);

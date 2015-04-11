@@ -34,6 +34,8 @@
 #include <time.h>
 #include <errno.h>
 
+#define DNS_MAXLEN 20480
+
 int   SOCKS_PORT  = 9050;
 char *SOCKS_ADDR  = { "127.0.0.1" };
 int   LISTEN_PORT = 53;
@@ -186,7 +188,7 @@ void tcp_query(void *query, response *buffer, int len) {
 
   // forward dns query
   send(sock, query, len, 0);
-  buffer->length = recv(sock, buffer->buffer, 2048, 0);
+  buffer->length = recv(sock, buffer->buffer, DNS_MAXLEN, 0);
 }
 
 int udp_listener() {
@@ -195,7 +197,7 @@ int udp_listener() {
   response *buffer = (response*)malloc(sizeof(response));
   struct sockaddr_in dns_listener, dns_client;
 
-  buffer->buffer = malloc(2048);
+  buffer->buffer = malloc(DNS_MAXLEN);
 
   memset(&dns_listener, 0, sizeof(dns_listener));
   dns_listener.sin_family = AF_INET;
@@ -231,7 +233,7 @@ int udp_listener() {
 
   while(1) {
     // receive a dns request from the client
-    len = recvfrom(sock, buffer->buffer, 2048, 0, (struct sockaddr *)&dns_client, &dns_client_size);
+    len = recvfrom(sock, buffer->buffer, DNS_MAXLEN, 0, (struct sockaddr *)&dns_client, &dns_client_size);
 
     // lets not fork if recvfrom was interrupted
     if (len < 0 && errno == EINTR) { continue; }

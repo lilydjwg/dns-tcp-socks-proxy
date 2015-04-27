@@ -229,6 +229,7 @@ int udp_listener() {
   struct sigaction reaper;
   memset(&reaper, 0, sizeof(struct sigaction));
   reaper.sa_handler = reaper_handle;
+  reaper.sa_flags = SA_RESTART;
   sigaction(SIGCHLD, &reaper, 0);
 
   while(1) {
